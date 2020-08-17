@@ -22,16 +22,24 @@ public class JDBCDepartmentDAO implements DepartmentDAO {
 	@Override
 	public List<Department> getAllDepartments() {
 		ArrayList<Department> departments = new ArrayList<Department>();
-		String sqlGetDepartment = "SELECT name FROM projects";
+		String sqlGetDepartment = "SELECT * FROM department";
 		SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlGetDepartment);
 		while (sqlRowSet.next()) {
-			Department deptName = (Department) sqlRowSet;
+			Department deptName = addRowToDepartment(sqlRowSet);
 //		   String idName = sqlRowSet.getString("id");
 			departments.add(deptName);
 			
 			
 		}
-		return new ArrayList<>();
+		return departments;
+	}
+
+	private Department addRowToDepartment(SqlRowSet sqlRowSet) {
+		// TODO Auto-generated method stub
+		Department deptName = new Department();
+		deptName.setId(sqlRowSet.getLong("department_id"));
+		deptName.setName(sqlRowSet.getString("name"));
+		return deptName;
 	}
 
 	@Override
