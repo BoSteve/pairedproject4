@@ -44,19 +44,40 @@ public class JDBCDepartmentDAO implements DepartmentDAO {
 
 	@Override
 	public List<Department> searchDepartmentsByName(String nameSearch) {
-		return new ArrayList<>();
+		ArrayList<Department> department= new ArrayList<Department>();
+		String search = "SELECT * FROM department WHERE name ILIKE (?)";
+		SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(search, nameSearch+"%");
+		while (sqlRowSet.next()) {
+			Department deptName = addRowToDepartment(sqlRowSet);
+			department.add(deptName);
+		}
+		return department;
 	}
 
 	@Override
 	public void saveDepartment(Department updatedDepartment) {
-		
+		String sqlInsertDept = "UPDATE department SET name = ? WHERE department_id = ?";
+		jdbcTemplate.update(sqlInsertDept, updatedDepartment.getName(), updatedDepartment.getId());
 	}
 
 	@Override
 	public Department createDepartment(Department newDepartment) {
-		return null;
+		String sqlInsertDept = "INSERT INTO department(name) VALUES(?)";
+		newDepartment.setId(getNewDepartmentById());
+		jdbcTemplate.update(sqlInsertDept, newDepartment.getName());
+		return newDepartment;
 	}
 
+	private long getNewDepartmentById() {
+		SqlRowSet nextIdResult = jdbcTemplate.queryForRowSet("SELECT nextval('seq_department_id')");
+		if(nextIdResult.next()) {
+		return nextIdResult.getLong(1);
+		} else {
+		throw new RuntimeException("Something went wrong while getting an id for the new dept");
+		}}
+	
+	
+	
 	@Override
 	public Department getDepartmentById(Long id) {
 		return null;
