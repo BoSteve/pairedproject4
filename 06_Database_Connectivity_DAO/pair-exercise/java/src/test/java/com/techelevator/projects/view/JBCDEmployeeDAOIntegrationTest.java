@@ -2,6 +2,7 @@ package com.techelevator.projects.view;
 
 import static org.junit.Assert.assertEquals;
 
+import java.sql.Date;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -15,14 +16,19 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
 import com.techelevator.projects.model.Employee;
 import com.techelevator.projects.model.jdbc.JDBCEmployeeDAO;
+import com.techelevator.projects.model.jdbc.JDBCProjectDAO;
 
 public class JBCDEmployeeDAOIntegrationTest {
 
 	private static SingleConnectionDataSource dataSource;
 
 	private JDBCEmployeeDAO dao;
+	private JDBCProjectDAO daoProj;
 
-	private static final String TEST_Employee_first_name = "Michael";
+
+	private static final String TEST_Employee_first_name = "Kobe";
+	private long deptId;
+	private long projId;
 
 	@BeforeClass
 	public static void setupTestSource() {
@@ -44,9 +50,14 @@ public class JBCDEmployeeDAOIntegrationTest {
 	@Before
 	public void setup() {
 		System.out.println("Starting test");
-		String sqlInsertEmployee = "INSERT INTO employee (employee_id, department_id, ?, last_name, birth_date, gender, hire_date)";
+		String sqlInsertEmployee = "INSERT INTO employee (employee_id, department_id, first_name, last_name, birth_date, gender, hire_date) VALUES (20, 1, ?, ?, ?, ?, ?)";
+		Date birthDate = Date.valueOf("1990-01-01");
+		Date hireDate = Date.valueOf("2020-01-01");
+		
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-		jdbcTemplate.update(sqlInsertEmployee,TEST_Employee_first_name);
+		jdbcTemplate.update(sqlInsertEmployee, TEST_Employee_first_name, "Bryant", birthDate, "M", hireDate);
+		projId = jdbcTemplate.queryForObject("INSERT INTO project (name, from_date) VALUES ('RAW','2019-08-18') RETURNING project_id",Long.class);
+		deptId = jdbcTemplate.queryForObject("INSERT INTO department (name) VALUES ('TESTDept') RETURNING department_id",Long.class);
 		dao = new JDBCEmployeeDAO(dataSource);
 
 	}
@@ -71,5 +82,40 @@ public class JBCDEmployeeDAOIntegrationTest {
 		
 	}
 	
+	@Test
+	public void search_employees_by_name_test() {
+		Employee testEmp = new Employee();
+		testEmp.setFirstName("Kobe");
+		testEmp.setLastName("Bryant");
+		List<Employee> searchEmpList = dao.searchEmployeesByName("Kobe", "Bryant");
+		searchEmpList.add(testEmp);
+		assertEquals("Kobe", searchEmpList.get(0).getFirstName());
+		assertEquals("Bryant", searchEmpList.get(0).getLastName());
+	
+	}
+	
+	@Test
+	public void get_employee_by_department_id() {	
+		Employee testEmp = new Employee();
+		List<Employee> deptIdList = dao.getAllEmployees();
+		assertEquals(13, deptIdList.size());
+	}
 
+	@Test
+	public void get_employees_without_project_id() {
+		List<Employee> empWithoutId = dao.getEmployeesWithoutProjects();
+//		System.out.println(empWithoutId.size());
+		assertEquals(3, empWithoutId.size());
+		assertEquals("Kobe", empWithoutId.get(2).getFirstName());
+		assertEquals("Bryant", empWithoutId.get(2).getLastName());
+	}
+	
+	@Test
+	public void get_employee_by_project_id() {
+		
+		List<Employee> empByProjId = dao.getEmployeesByProjectId(projId);
+		System.out.println(empByProjId.size());
+		assertEquals(3, empByProjId.size());
+
+	}
 }
