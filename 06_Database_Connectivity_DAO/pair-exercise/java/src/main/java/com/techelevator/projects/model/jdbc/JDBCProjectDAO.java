@@ -50,9 +50,9 @@ public class JDBCProjectDAO implements ProjectDAO {
 	}
 
 	@Override
-	public void removeEmployeeFromProject(Long employeeId, Long projectId) {
-		String removeEmp = "DELETE FROM project_employee WHERE employee_id = ? AND project_id = ?";
-		jdbcTemplate.update(removeEmp, employeeId, projectId);
+	public void removeEmployeeFromProject(Long projectId, Long employeeId) {
+		String removeEmp = "DELETE FROM project_employee WHERE (project_id = ?) AND (employee_id = ?)";
+		jdbcTemplate.update(removeEmp, projectId, employeeId);
 		
 	}
 

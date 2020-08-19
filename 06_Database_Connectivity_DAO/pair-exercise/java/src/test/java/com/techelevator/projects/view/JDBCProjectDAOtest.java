@@ -92,9 +92,15 @@ public class JDBCProjectDAOtest {
 	public void add_emp_to_proj() {
 		dao.addEmployeeToProject(projId, empId);
 		List<Employee> emp = empDao.getEmployeesByProjectId(projId);
-		System.out.println(emp);
-		assertEquals(1, emp.size());
-		
+		assertEquals(1, emp.size());	
 	}
-	
+	@Test
+	public void remove_emp_from_proj() {
+		dao.addEmployeeToProject(projId, empId);
+		List<Employee> emp = empDao.getEmployeesByProjectId(projId);
+		assertEquals(1, emp.size());
+		dao.removeEmployeeFromProject(projId, empId);
+		List<Employee> empAfter = empDao.getEmployeesByProjectId(projId);
+		assertEquals(emp.size() - 1, empAfter.size());
+	}
 }
