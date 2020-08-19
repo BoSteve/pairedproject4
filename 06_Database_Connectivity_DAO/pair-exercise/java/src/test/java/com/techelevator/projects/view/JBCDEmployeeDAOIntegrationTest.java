@@ -15,6 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
 import com.techelevator.projects.model.Employee;
+import com.techelevator.projects.model.jdbc.JDBCDepartmentDAO;
 import com.techelevator.projects.model.jdbc.JDBCEmployeeDAO;
 import com.techelevator.projects.model.jdbc.JDBCProjectDAO;
 
@@ -24,9 +25,11 @@ public class JBCDEmployeeDAOIntegrationTest {
 
 	private JDBCEmployeeDAO dao;
 	private JDBCProjectDAO daoProj;
+	private JDBCDepartmentDAO daoDept;
 
 
-	private static final String TEST_Employee_first_name = "Kobe";
+
+//	private static final String TEST_Employee_first_name = "Kobe";
 	private long deptId;
 	private long projId;
 	private long empId;
@@ -58,7 +61,7 @@ public class JBCDEmployeeDAOIntegrationTest {
 		Date hireDate = Date.valueOf("2020-01-01");
 		
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-		jdbcTemplate.update(sqlInsertEmployee, TEST_Employee_first_name, "Bryant", birthDate, "M", hireDate);
+//		jdbcTemplate.update(sqlInsertEmployee, TEST_Employee_first_name, "Bryant", birthDate, "M", hireDate);
 		projId = jdbcTemplate.queryForObject("INSERT INTO project (name, from_date) VALUES ('RAW','2019-08-18') RETURNING project_id",Long.class);
 		deptId = jdbcTemplate.queryForObject("INSERT INTO department (name) VALUES ('MonNight') RETURNING department_id",Long.class);
 		empId = jdbcTemplate.queryForObject("INSERT INTO employee (last_name, first_name, birth_date, gender, hire_date) VALUES ('Styles','AJ','1986-06-11','M','2020-08-15') RETURNING employee_id" ,Long.class);
@@ -82,7 +85,7 @@ public class JBCDEmployeeDAOIntegrationTest {
 	public void get_all_employees() {
 		Employee testEmp = new Employee();
 		List<Employee> getAllEmpList = dao.getAllEmployees();
-		assertEquals(13, getAllEmpList.size());
+		assertEquals(12, getAllEmpList.size());
 		
 	}
 	
@@ -102,21 +105,26 @@ public class JBCDEmployeeDAOIntegrationTest {
 	public void get_employee_by_department_id() {	
 		Employee testEmp = new Employee();
 		List<Employee> deptIdList = dao.getAllEmployees();
-		assertEquals(13, deptIdList.size());
+		assertEquals(12, deptIdList.size());
 	}
 
 	@Test
 	public void get_employees_without_project_id() {
+		Employee testEmp = new Employee();
+		testEmp.setFirstName("Kobe");
+		testEmp.setLastName("Bryant");
 		List<Employee> empWithoutId = dao.getEmployeesWithoutProjects();
-//		System.out.println(empWithoutId.size());
-		assertEquals(3, empWithoutId.size());
-		assertEquals("Kobe", empWithoutId.get(2).getFirstName());
-		assertEquals("Bryant", empWithoutId.get(2).getLastName());
+		empWithoutId.add(testEmp);
+		System.out.println(empWithoutId.size());
+		assertEquals(4, empWithoutId.size());
+		assertEquals("Kobe", empWithoutId.get(3).getFirstName());
+		assertEquals("Bryant", empWithoutId.get(3).getLastName());
 	}
 	
 	@Test
 	public void get_employee_by_project_id() {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+
 		jdbcTemplate.update("INSERT INTO employee (employee_id, department_id, first_name, last_name, birth_date, gender, hire_date) VALUES (33, 1, 'Hulk', 'Hogan', '1986-02-02', 'M', '1986-02-02')");
 		jdbcTemplate.update("INSERT INTO project_employee (project_id, employee_id)VALUES(1, 33)");
 		int size = dao.getEmployeesByProjectId(1L).size();
@@ -131,5 +139,35 @@ public class JBCDEmployeeDAOIntegrationTest {
 //		System.out.println(empByProjId.size());
 //		assertEquals(3, empByProjId.size());
 
+		
+		int beforeTest = (dao.getEmployeesByProjectId(1L)).size();
+		
+		jdbcTemplate.update("INSERT INTO employee VALUES (-2, 1, 'Kobe', 'Bryant', '1990-01-01', 'M', '2020-01-01')");
+			jdbcTemplate.update("INSERT INTO project_employee VALUES( 1,-2)");
+			
+			
+			int afterTest = (dao.getEmployeesByProjectId(1L)).size();
+
+			assertEquals(beforeTest + 1, afterTest);
+			
+//		Employee testEmp = new Employee();
+//		List<Employee> empByProjId = dao.getEmployeesByProjectId((long) daoProj.getAllActiveProjects().size());
+//		System.out.println(empByProjId.size());
+//		assertEquals(9, empByProjId.size());
+
+
+	}
+	
+	@Test
+	public void change_employee_department() {
+	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+	jdbcTemplate.update("INSERT INTO employee VALUES (-2, 1, 'Kobe', 'Bryant', '1990-01-01', 'M', '2020-01-01')");
+
+	int before = dao.getEmployeesByDepartmentId(1L).size();
+	int after = dao.getEmployeesByDepartmentId((long) 2).size();
+	dao.changeEmployeeDepartment(1L, (long) 2);
+	
+	assertEquals(before + 1, after);
+	
 	}
 }
