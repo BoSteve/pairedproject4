@@ -32,7 +32,6 @@ public class JBCDEmployeeDAOIntegrationTest {
 //	private static final String TEST_Employee_first_name = "Kobe";
 	private long deptId;
 	private long projId;
-	private long empId;
 
 	@BeforeClass
 	public static void setupTestSource() {
@@ -48,8 +47,6 @@ public class JBCDEmployeeDAOIntegrationTest {
 
 	@AfterClass
 	public static void endTestSource() {
-		
-		System.out.println("All tests are done");
 		dataSource.destroy();
 	}
 
@@ -63,8 +60,7 @@ public class JBCDEmployeeDAOIntegrationTest {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 //		jdbcTemplate.update(sqlInsertEmployee, TEST_Employee_first_name, "Bryant", birthDate, "M", hireDate);
 		projId = jdbcTemplate.queryForObject("INSERT INTO project (name, from_date) VALUES ('RAW','2019-08-18') RETURNING project_id",Long.class);
-		deptId = jdbcTemplate.queryForObject("INSERT INTO department (name) VALUES ('MonNight') RETURNING department_id",Long.class);
-		empId = jdbcTemplate.queryForObject("INSERT INTO employee (last_name, first_name, birth_date, gender, hire_date) VALUES ('Styles','AJ','1986-06-11','M','2020-08-15') RETURNING employee_id" ,Long.class);
+		deptId = jdbcTemplate.queryForObject("INSERT INTO department (name) VALUES ('TESTDept') RETURNING department_id",Long.class);
 		dao = new JDBCEmployeeDAO(dataSource);
 
 	}
@@ -115,7 +111,7 @@ public class JBCDEmployeeDAOIntegrationTest {
 		testEmp.setLastName("Bryant");
 		List<Employee> empWithoutId = dao.getEmployeesWithoutProjects();
 		empWithoutId.add(testEmp);
-		System.out.println(empWithoutId.size());
+//		System.out.println(empWithoutId.size());
 		assertEquals(4, empWithoutId.size());
 		assertEquals("Kobe", empWithoutId.get(3).getFirstName());
 		assertEquals("Bryant", empWithoutId.get(3).getLastName());
@@ -124,21 +120,6 @@ public class JBCDEmployeeDAOIntegrationTest {
 	@Test
 	public void get_employee_by_project_id() {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-
-		jdbcTemplate.update("INSERT INTO employee (employee_id, department_id, first_name, last_name, birth_date, gender, hire_date) VALUES (33, 1, 'Hulk', 'Hogan', '1986-02-02', 'M', '1986-02-02')");
-		jdbcTemplate.update("INSERT INTO project_employee (project_id, employee_id)VALUES(1, 33)");
-		int size = dao.getEmployeesByProjectId(1L).size();
-		System.out.println(size);
-		List<Employee> emp = dao.getEmployeesByProjectId(1L);
-		assertEquals(2, emp.size());
-		assertEquals("Hulk", emp.get(0).getFirstName());
-		
-		
-		
-//		List<Employee> empByProjId = dao.getEmployeesByProjectId(projId);
-//		System.out.println(empByProjId.size());
-//		assertEquals(3, empByProjId.size());
-
 		
 		int beforeTest = (dao.getEmployeesByProjectId(1L)).size();
 		
@@ -154,7 +135,6 @@ public class JBCDEmployeeDAOIntegrationTest {
 //		List<Employee> empByProjId = dao.getEmployeesByProjectId((long) daoProj.getAllActiveProjects().size());
 //		System.out.println(empByProjId.size());
 //		assertEquals(9, empByProjId.size());
-
 
 	}
 	
